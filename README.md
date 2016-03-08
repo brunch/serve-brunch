@@ -12,6 +12,7 @@ require('serve-brunch').serve({
   path,     // path to server.js file
   command,  // run a custom command instead of reading the file
 });
+```
 
 ## License
 
