@@ -8,27 +8,31 @@ const pushserve = require('pushserve');
 const longCallbackTime = 4000; // ms.
 
 // config: {port, hostname, command, path, publicPath}
-const launch = (serverOpts, callback) => {
+const launch = (options, callback) => {
   if (!callback) callback = Function.prototype;
-  const port = parseInt(serverOpts.port, 10);
-  const host = serverOpts.hostname || 'localhost';
-  const serverCommand = serverOpts.command;
-  const serverPath = serverOpts.path;
-  const publicPath = serverOpts.publicPath;
+  const port = parseInt(options.port, 10);
+  const host = options.hostname || 'localhost';
+  const serverCommand = options.command;
+  const serverPath = options.path;
+  const publicPath = options.publicPath;
+  const startupLogging = options.startupLogging == null ?
+    true :
+    options.startupLogging;
   let customServerTimeout;
   let server;
 
   const serverCb = () => {
     clearTimeout(customServerTimeout);
     const isCustom = serverPath || serverCommand;
-    logger.info(isCustom ?
-      'custom server started, initializing watcher' :
-      `application started on http://${host}:${port}/`
-    );
+    if (isCustom) {
+      if (startupLogging) logger.info('custom server started, initializing watcher');
+    } else {
+      if (startupLogging) logger.info(`application started on http://${host}:${port}/`);
+    }
     callback(null, server);
   };
   if (serverPath) {
-    logger.info('starting custom server');
+    if (startupLogging) logger.info('starting custom server');
     try {
       server = require(sysPath.resolve(serverPath));
     } catch (error) {
@@ -44,11 +48,11 @@ const launch = (serverOpts, callback) => {
       }
     })();
     const opts = {port: port, hostname: host, path: publicPath};
-    const serverConfig = Object.assign(opts, serverOpts.config || {});
+    const serverConfig = Object.assign(opts, options.config || {});
     debug(`Invoking custom startServer with: ${JSON.stringify(serverConfig)}`);
     customServerTimeout = setTimeout(() => {
-      logger.warn('custom server taking a long time to start');
-      return logger.warn("**don\'t forget to invoke callback()**");
+      if (startupLogging) logger.warn('custom server taking a long time to start');
+      if (startupLogging) logger.warn("**don\'t forget to invoke callback()**");
     }, longCallbackTime);
     switch (serverFn.length) {
       case 1:
@@ -76,7 +80,7 @@ const launch = (serverOpts, callback) => {
     return child;
   } else {
     const opts = {noLog: true, path: publicPath};
-    return pushserve(Object.assign(opts, serverOpts), serverCb);
+    return pushserve(Object.assign(opts, options), serverCb);
   }
 };
 
