@@ -23,11 +23,31 @@ const launch = (options, callback) => {
 
   const serverCb = () => {
     clearTimeout(customServerTimeout);
-    const isCustom = serverPath || serverCommand;
-    if (isCustom) {
-      if (startupLogging) logger.info('custom server started, initializing watcher');
-    } else {
-      if (startupLogging) logger.info(`application started on http://${host}:${port}/`);
+    if (startupLogging) {
+      if (serverPath || serverCommand) {
+        logger.info('custom server started, initializing watcher');
+      } else {
+        let ifshow;
+
+        // show ipv4 urls
+        if (host === '0.0.0.0') {
+          const os = require('os');
+          const ifaces = os.networkInterfaces();
+          Object.keys(ifaces).forEach(function (ifname) {
+            let alias = 0;
+            ifaces[ifname].forEach(function (iface) {
+              if ('IPv4' === iface.family) { // && iface.internal == false) {
+                ifshow = (alias > 0) ? `${ifname}:${alias}` : ifname;
+                logger.info(`application started on http://${iface.address}:${port}/ (${ifshow})`);
+                alias++;
+              }
+            });
+          });
+        }
+
+        // ensure a url is always shown
+        if (!ifshow) logger.info(`application started on http://${host}:${port}/`);
+      }
     }
     callback(null, server);
   };
