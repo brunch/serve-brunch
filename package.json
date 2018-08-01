@@ -1,6 +1,6 @@
 {
   "name": "serve-brunch",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Starts a simple webserver for Brunch app.",
   "main": "index.js",
   "scripts": {
@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/brunch/serve-brunch#readme",
   "dependencies": {
-    "debug": "^2.2",
+    "debug": "^3.1",
     "loggy": "^1",
     "pushserve": "^1"
   }
